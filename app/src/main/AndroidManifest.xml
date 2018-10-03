@@ -14,6 +14,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".web.WebActivity"
+            android:configChanges="orientation|screenSize"
+            android:fitsSystemWindows="true"
+            android:hardwareAccelerated="true">
+        </activity>
     </application>
 
 
