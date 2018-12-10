@@ -4,12 +4,15 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyCharacterMap;
@@ -35,12 +38,8 @@ public class WebActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);  //设置为强制横屏
-        hideBottomUIMenu();
+        // hideBottomUIMenu();
         // fullscreen();
 
         webview = new WebView(this);
@@ -52,16 +51,18 @@ public class WebActivity extends Activity {
         Point point = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(point);
 
-        LinearLayout.LayoutParams params  = new LinearLayout.LayoutParams(point.x, point.y);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(point.x, point.y);
         params.leftMargin = 0;
-        params.topMargin  = 0;
+        params.topMargin = 0;
+        params.height = getHeight();
+
         webview.setLayoutParams(params);
 
 
-        webview.setWebViewClient(new WebViewClient(){
+        webview.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.e("URL",url);
+                Log.e("URL", url);
                 view.loadUrl(url);
                 return true;
             }
@@ -89,6 +90,10 @@ public class WebActivity extends Activity {
         settings.setPluginState(WebSettings.PluginState.ON);
         webview.setWebChromeClient(new WebChromeClient());
 
+
+        String ua = webview.getSettings().getUserAgentString();
+        webview.getSettings().setUserAgentString(ua+"; APP/JHLLO app_version:"+getLocalVersion());
+
 //        webview.addJavascriptInterface(new WebTesk(this), "Android");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -98,26 +103,22 @@ public class WebActivity extends Activity {
         webview.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.e("URL",url);
-                if (url==null || url=="") {
+                Log.e("URL", url);
+                if (url == null || url == "") {
                     return false;
                 }
-                if (!url.startsWith("http") && !url.startsWith("https")) {{
-                    //加载手机内置支付
-                    toLoadInnerApp(url);
-                    return true;
-                }
+                if (!url.startsWith("http") && !url.startsWith("https")) {
+                    {
+                        //加载手机内置支付
+                        toLoadInnerApp(url);
+                        return true;
+                    }
                 } else {
                     return false;
                 }
             }
 
         });
-
-
-
-//        String url = "https://xueche.jhelllo.cn/front/app/";
-
 
 
         Bundle bundleExtra = this.getIntent().getExtras();
@@ -132,9 +133,9 @@ public class WebActivity extends Activity {
 
                 WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 int windowWidth = wm.getDefaultDisplay().getWidth();
-                int windowHeight = wm.getDefaultDisplay().getHeight()-height;
+                int windowHeight = getHeight() - height;
 
-                ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+                ViewGroup.LayoutParams lp = webview.getLayoutParams();
                 lp.width = windowWidth;
                 lp.height = windowHeight;
                 webview.setLayoutParams(lp);
@@ -147,9 +148,9 @@ public class WebActivity extends Activity {
 //                Toast.makeText(WebActivity.this, "键盘隐藏 高度" + height, Toast.LENGTH_SHORT).show();
                 WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 int windowWidth = wm.getDefaultDisplay().getWidth();
-                int windowHeight = wm.getDefaultDisplay().getHeight();
+                int windowHeight = getHeight();
 
-                ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+                ViewGroup.LayoutParams lp = webview.getLayoutParams();
                 lp.width = windowWidth;
                 lp.height = windowHeight;
                 webview.setLayoutParams(lp);
@@ -158,8 +159,10 @@ public class WebActivity extends Activity {
         });
 
     }
+
     /**
      * 加载手机内置支付app
+     *
      * @param url
      */
     private void toLoadInnerApp(String url) {
@@ -182,7 +185,7 @@ public class WebActivity extends Activity {
 //        WindowManager wm = getWindowManager();//Activity可以直接获取WindowManager
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         int windowWidth = wm.getDefaultDisplay().getWidth();
-        int windowHeight = wm.getDefaultDisplay().getHeight();
+        int windowHeight = getHeight();
 
         Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
         int ori = mConfiguration.orientation; //获取屏幕方向
@@ -197,40 +200,55 @@ public class WebActivity extends Activity {
 //            hideBottomUIMenu();
 //        }
 
-        ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+        ViewGroup.LayoutParams lp = webview.getLayoutParams();
         lp.width = windowWidth;
         lp.height = windowHeight;
         webview.setLayoutParams(lp);
     }
 
-    public boolean isNavigationBarShow(){
+    public int getHeight() {
+        Context context = this.getApplicationContext();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        DisplayMetrics dm = new DisplayMetrics();
+        display.getMetrics(dm);
+        int height = dm.heightPixels;
+        return height;
+    }
+
+
+    public boolean isNavigationBarShow() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             Point realSize = new Point();
             display.getSize(size);
             display.getRealSize(realSize);
-            return realSize.y!=size.y;
-        }else {
+            return realSize.y != size.y;
+        } else {
             boolean menu = ViewConfiguration.get(this).hasPermanentMenuKey();
             boolean back = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-            if(menu || back) {
+            if (menu || back) {
                 return false;
-            }else {
+            } else {
                 return true;
             }
         }
     }
-    public  int getNavigationBarHeight(Activity activity) {
-        if (!isNavigationBarShow()){
-            return 0;
+
+    public  String getLocalVersion() {
+        Context ctx = this.getApplicationContext();
+        String localVersion = "";
+        try {
+            PackageInfo packageInfo = ctx.getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(ctx.getPackageName(), 0);
+            localVersion = packageInfo.versionName;
+            Log.d("TAG", "本软件的版本号。。" + localVersion);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        Resources resources = activity.getResources();
-        int resourceId = resources.getIdentifier("navigation_bar_height",
-                "dimen", "android");
-        //获取NavigationBar的高度
-        int height = resources.getDimensionPixelSize(resourceId);
-        return height;
+        return localVersion;
     }
 
     /**
@@ -263,6 +281,25 @@ public class WebActivity extends Activity {
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
             decorView.setSystemUiVisibility(uiOptions);
+        }
+    }
+    /**
+     * 监听Back键按下事件,方法2:
+     * 在此处返回false,所以会继续传播该事件. 继续执行super.onKeyDown(keyCode, event);
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            if(webview.canGoBack()) {
+                webview.goBack();
+                return false;
+            }
+            else {
+                return  super.onKeyDown(keyCode, event);
+            }
+
+        }else {
+            return  super.onKeyDown(keyCode, event);
         }
     }
 

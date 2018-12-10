@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
 
         Intent intent = new Intent(MainActivity.this, WebActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putString("url","https://exchange.magiccube.io");
+        bundle.putString("url","https://exchange.magiccube.io/m/");
         intent.putExtras(bundle);
         startActivity(intent);
         MainActivity.this.finish();
