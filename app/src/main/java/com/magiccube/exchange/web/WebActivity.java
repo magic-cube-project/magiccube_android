@@ -4,9 +4,11 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,6 +26,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 
+import com.magiccube.exchange.MainActivity;
+import com.magiccube.exchange.utils.APKVersionCodeUtils;
+
 public class WebActivity extends Activity {
     private WebSettings webSettings = null;
     private WebView webview = null;
@@ -38,12 +43,10 @@ public class WebActivity extends Activity {
 
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);  //设置为强制横屏
-        hideBottomUIMenu();
-        // fullscreen();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);  //设置为强制横屏
 
         webview = new WebView(this);
+        MainActivity.webview = webview;
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         setContentView(layout);
@@ -56,6 +59,10 @@ public class WebActivity extends Activity {
         params.leftMargin = 0;
         params.topMargin  = 0;
         webview.setLayoutParams(params);
+        String ua = webview.getSettings().getUserAgentString();
+        webview.getSettings().setUserAgentString(ua+"; APP/JHELLO app_version: "+APKVersionCodeUtils.getVersionCode(this));
+
+        fullscreen();
 
 
         webview.setWebViewClient(new WebViewClient(){
@@ -176,10 +183,9 @@ public class WebActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-//        hideBottomUIMenu();
+
 
         //一些适配操作
-//        WindowManager wm = getWindowManager();//Activity可以直接获取WindowManager
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         int windowWidth = wm.getDefaultDisplay().getWidth();
         int windowHeight = wm.getDefaultDisplay().getHeight();
@@ -253,17 +259,44 @@ public class WebActivity extends Activity {
      * 隐藏虚拟按键，并且全屏
      */
     protected void fullscreen() {
-        //隐藏虚拟按键，并且全屏
-        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
-            View v = this.getWindow().getDecorView();
-            v.setSystemUiVisibility(View.GONE);
-        } else if (Build.VERSION.SDK_INT >= 19) {
-            //for new api versions.
-            View decorView = getWindow().getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
-            decorView.setSystemUiVisibility(uiOptions);
+        View rootView = this.getWindow().getDecorView();
+
+        Rect r = new Rect();
+        rootView.getWindowVisibleDisplayFrame(r);
+        int visibleHeight = r.height();
+
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        int windowWidth = wm.getDefaultDisplay().getWidth();
+        int windowHeight = wm.getDefaultDisplay().getHeight();
+
+        ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+        lp.width = windowWidth;
+        lp.height = visibleHeight;
+        webview.setLayoutParams(lp);
+    }
+
+    /**
+     * 监听Back键按下事件,方法2:
+     * 在此处返回false,所以会继续传播该事件. 继续执行super.onKeyDown(keyCode, event);
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            if(webview.canGoBack()) {
+                webview.goBack();
+                return false;
+            }
+            else {
+                return  super.onKeyDown(keyCode, event);
+            }
+
+        }else {
+            return  super.onKeyDown(keyCode, event);
         }
+    }
+
+    public  void setUrl(String url){
+        webview.loadUrl(url);
     }
 
 
