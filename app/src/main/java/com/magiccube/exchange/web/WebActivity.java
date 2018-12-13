@@ -2,6 +2,7 @@ package com.magiccube.exchange.web;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -30,6 +32,9 @@ import com.magiccube.exchange.MainActivity;
 import com.magiccube.exchange.utils.APKVersionCodeUtils;
 
 public class WebActivity extends Activity {
+    private ValueCallback<Uri> uploadMessage;
+    private ValueCallback<Uri[]> uploadMessageAboveL;
+    private final static int FILE_CHOOSER_RESULT_CODE = 10000;
     private WebSettings webSettings = null;
     private WebView webview = null;
 //    String[] urlArr = new String[100];
@@ -55,23 +60,37 @@ public class WebActivity extends Activity {
         Point point = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(point);
 
-        LinearLayout.LayoutParams params  = new LinearLayout.LayoutParams(point.x, point.y);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(point.x, point.y);
         params.leftMargin = 0;
-        params.topMargin  = 0;
+        params.topMargin = 0;
         webview.setLayoutParams(params);
         String ua = webview.getSettings().getUserAgentString();
-        webview.getSettings().setUserAgentString(ua+"; APP/JHELLO app_version: "+APKVersionCodeUtils.getVersionCode(this));
+        webview.getSettings().setUserAgentString(ua + "; APP/JHELLO app_version: " + APKVersionCodeUtils.getVersionCode(this));
 
         fullscreen();
 
+        webview.setWebChromeClient(new WebChromeClient() {
+            // For Android 5.0+
+            @Override
+            public boolean onShowFileChooser(WebView webView,
+                                             ValueCallback<Uri[]> filePathCallback,
+                                             FileChooserParams fileChooserParams) {
+                uploadMessageAboveL = filePathCallback;
+                openImageChooserActivity();
 
-        webview.setWebViewClient(new WebViewClient(){
+                return true;
+            }
+
+        });
+
+        webview.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.e("URL",url);
+                Log.e("URL", url);
                 view.loadUrl(url);
                 return true;
             }
+
         });
 
         if (Build.VERSION.SDK_INT >= 19) {
@@ -93,10 +112,8 @@ public class WebActivity extends Activity {
         settings.setBuiltInZoomControls(true);
         settings.setUseWideViewPort(true);
         webview.setWebContentsDebuggingEnabled(true);
+        webview.getSettings().setBlockNetworkImage(false);//解决图片不显示
         settings.setPluginState(WebSettings.PluginState.ON);
-        webview.setWebChromeClient(new WebChromeClient());
-
-//        webview.addJavascriptInterface(new WebTesk(this), "Android");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
@@ -105,26 +122,22 @@ public class WebActivity extends Activity {
         webview.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.e("URL",url);
-                if (url==null || url=="") {
+                Log.e("URL", url);
+                if (url == null || url == "") {
                     return false;
                 }
-                if (!url.startsWith("http") && !url.startsWith("https")) {{
-                    //加载手机内置支付
-                    toLoadInnerApp(url);
-                    return true;
-                }
+                if (!url.startsWith("http") && !url.startsWith("https")) {
+                    {
+                        //加载手机内置支付
+                        toLoadInnerApp(url);
+                        return true;
+                    }
                 } else {
                     return false;
                 }
             }
 
         });
-
-
-
-//        String url = "https://xueche.jhelllo.cn/front/app/";
-
 
 
         Bundle bundleExtra = this.getIntent().getExtras();
@@ -139,13 +152,12 @@ public class WebActivity extends Activity {
 
                 WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 int windowWidth = wm.getDefaultDisplay().getWidth();
-                int windowHeight = wm.getDefaultDisplay().getHeight()-height;
+                int windowHeight = wm.getDefaultDisplay().getHeight() - height;
 
-                ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+                ViewGroup.LayoutParams lp = webview.getLayoutParams();
                 lp.width = windowWidth;
                 lp.height = windowHeight;
                 webview.setLayoutParams(lp);
-
 
             }
 
@@ -156,7 +168,7 @@ public class WebActivity extends Activity {
                 int windowWidth = wm.getDefaultDisplay().getWidth();
                 int windowHeight = wm.getDefaultDisplay().getHeight();
 
-                ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+                ViewGroup.LayoutParams lp = webview.getLayoutParams();
                 lp.width = windowWidth;
                 lp.height = windowHeight;
                 webview.setLayoutParams(lp);
@@ -165,8 +177,10 @@ public class WebActivity extends Activity {
         });
 
     }
+
     /**
      * 加载手机内置支付app
+     *
      * @param url
      */
     private void toLoadInnerApp(String url) {
@@ -192,43 +206,33 @@ public class WebActivity extends Activity {
 
         Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
         int ori = mConfiguration.orientation; //获取屏幕方向
-//        if (ori == mConfiguration.ORIENTATION_LANDSCAPE) {
-//            //横屏
-//            windowWidth+=getNavigationBarHeight(this);
-//            fullscreen();
-//
-//        } else if (ori == mConfiguration.ORIENTATION_PORTRAIT) {
-//            //竖屏
-//            windowHeight+=getNavigationBarHeight(this);
-//            hideBottomUIMenu();
-//        }
-
-        ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+        ViewGroup.LayoutParams lp = webview.getLayoutParams();
         lp.width = windowWidth;
         lp.height = windowHeight;
         webview.setLayoutParams(lp);
     }
 
-    public boolean isNavigationBarShow(){
+    public boolean isNavigationBarShow() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
             Point realSize = new Point();
             display.getSize(size);
             display.getRealSize(realSize);
-            return realSize.y!=size.y;
-        }else {
+            return realSize.y != size.y;
+        } else {
             boolean menu = ViewConfiguration.get(this).hasPermanentMenuKey();
             boolean back = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-            if(menu || back) {
+            if (menu || back) {
                 return false;
-            }else {
+            } else {
                 return true;
             }
         }
     }
-    public  int getNavigationBarHeight(Activity activity) {
-        if (!isNavigationBarShow()){
+
+    public int getNavigationBarHeight(Activity activity) {
+        if (!isNavigationBarShow()) {
             return 0;
         }
         Resources resources = activity.getResources();
@@ -269,7 +273,7 @@ public class WebActivity extends Activity {
         int windowWidth = wm.getDefaultDisplay().getWidth();
         int windowHeight = wm.getDefaultDisplay().getHeight();
 
-        ViewGroup.LayoutParams  lp = webview.getLayoutParams();
+        ViewGroup.LayoutParams lp = webview.getLayoutParams();
         lp.width = windowWidth;
         lp.height = visibleHeight;
         webview.setLayoutParams(lp);
@@ -282,22 +286,66 @@ public class WebActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            if(webview.canGoBack()) {
+            if (webview.canGoBack()) {
                 webview.goBack();
                 return false;
-            }
-            else {
-                return  super.onKeyDown(keyCode, event);
+            } else {
+                return super.onKeyDown(keyCode, event);
             }
 
-        }else {
-            return  super.onKeyDown(keyCode, event);
+        } else {
+            return super.onKeyDown(keyCode, event);
         }
     }
 
-    public  void setUrl(String url){
+    public void setUrl(String url) {
         webview.loadUrl(url);
     }
 
+    private void openImageChooserActivity() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("image/*");
+        startActivityForResult(Intent.createChooser(i, "Image Chooser"), FILE_CHOOSER_RESULT_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILE_CHOOSER_RESULT_CODE) {
+            if (null == uploadMessage && null == uploadMessageAboveL) return;
+            Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+            if (uploadMessageAboveL != null) {
+                onActivityResultAboveL(requestCode, resultCode, data);
+            } else if (uploadMessage != null) {
+                uploadMessage.onReceiveValue(result);
+                uploadMessage = null;
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
+        if (requestCode != FILE_CHOOSER_RESULT_CODE || uploadMessageAboveL == null)
+            return;
+        Uri[] results = null;
+        if (resultCode == Activity.RESULT_OK) {
+            if (intent != null) {
+                String dataString = intent.getDataString();
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    results = new Uri[clipData.getItemCount()];
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        results[i] = item.getUri();
+                    }
+                }
+                if (dataString != null)
+                    results = new Uri[]{Uri.parse(dataString)};
+            }
+        }
+        uploadMessageAboveL.onReceiveValue(results);
+        uploadMessageAboveL = null;
+    }
 
 }
