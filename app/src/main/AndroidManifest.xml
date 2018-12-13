@@ -14,9 +14,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <!--协议部分，随便设置
-                    xl://goods:8888/goodsDetail?goodsId=10011002
-                 -->
                 <data android:scheme="mce" />
                 <!--下面这几行也必须得设置-->
                 <category android:name="android.intent.category.DEFAULT"/>
