@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -65,7 +64,7 @@ public class WebActivity extends Activity {
         params.topMargin = 0;
         webview.setLayoutParams(params);
         String ua = webview.getSettings().getUserAgentString();
-        webview.getSettings().setUserAgentString(ua + "; APP/JHELLO app_version: " + APKVersionCodeUtils.getVersionCode(this));
+        webview.getSettings().setUserAgentString(ua + "; APP/JHELLO app_version: " + APKVersionCodeUtils.getVersionCode(this)+" "+APKVersionCodeUtils.getDeviceInfo(this));
 
         fullscreen();
 
@@ -229,18 +228,6 @@ public class WebActivity extends Activity {
                 return true;
             }
         }
-    }
-
-    public int getNavigationBarHeight(Activity activity) {
-        if (!isNavigationBarShow()) {
-            return 0;
-        }
-        Resources resources = activity.getResources();
-        int resourceId = resources.getIdentifier("navigation_bar_height",
-                "dimen", "android");
-        //获取NavigationBar的高度
-        int height = resources.getDimensionPixelSize(resourceId);
-        return height;
     }
 
     /**

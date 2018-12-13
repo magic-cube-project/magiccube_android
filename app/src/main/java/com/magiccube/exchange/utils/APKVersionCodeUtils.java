@@ -1,9 +1,19 @@
 package com.magiccube.exchange.utils;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.TelephonyManager;
+
+import com.magiccube.exchange.MainActivity;
+
+import java.util.HashMap;
 
 public class APKVersionCodeUtils {
+    private static final String TODO = "TODO";
+
     /**
      * 获取当前本地apk的版本
      *
@@ -28,7 +38,7 @@ public class APKVersionCodeUtils {
      * @param context 上下文
      * @return
      */
-    public static String getVerName(Context context) {
+    public static String getVersionName(Context context) {
         String verName = "";
         try {
             verName = context.getPackageManager().
@@ -37,5 +47,32 @@ public class APKVersionCodeUtils {
             e.printStackTrace();
         }
         return verName;
+    }
+
+    public static String getDeviceInfo(Context context) {
+        HashMap<String,String> map = new HashMap();
+        TelephonyManager phone = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_PHONE_STATE}, MainActivity.CODE_FOR_WRITE_PERMISSION);
+
+            return TODO;
+        }
+        map.put("imei", phone.getDeviceId());
+        map.put("product", android.os.Build.PRODUCT);
+
+        String res = "";
+
+        for(String key:map.keySet())
+        {
+            res += key+":"+map.get(key)+" ";
+        }
+        return res;
     }
 }
