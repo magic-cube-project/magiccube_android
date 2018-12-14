@@ -28,6 +28,7 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 
 import com.magiccube.exchange.MainActivity;
+import com.magiccube.exchange.mob.InterstitialAdMob;
 import com.magiccube.exchange.utils.APKVersionCodeUtils;
 
 public class WebActivity extends Activity {
@@ -37,6 +38,8 @@ public class WebActivity extends Activity {
     private WebSettings webSettings = null;
     private WebView webview = null;
 //    String[] urlArr = new String[100];
+
+    private InterstitialAdMob interstitialAdMob;
 
     private static final int REQUEST_CODE = 0x11;
 
@@ -174,6 +177,11 @@ public class WebActivity extends Activity {
 
             }
         });
+
+        interstitialAdMob = new InterstitialAdMob(this);
+
+        interstitialAdMob.timeshow(5000);
+
 
     }
 

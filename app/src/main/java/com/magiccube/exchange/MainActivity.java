@@ -36,7 +36,6 @@ public class MainActivity extends Activity {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE}, MainActivity.CODE_FOR_WRITE_PERMISSION);
-
         } else {
             load();
         }
@@ -54,7 +53,7 @@ public class MainActivity extends Activity {
                 load();
             } else {
                 //用户不同意，向用户展示该权限作用
-                                                                                  load();
+                load();
 
             }
         }
