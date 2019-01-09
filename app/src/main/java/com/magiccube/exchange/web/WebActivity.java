@@ -50,7 +50,7 @@ public class WebActivity extends Activity {
 
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);  //设置为强制横屏
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);  //设置为强制竖屏
 
         webview = new WebView(this);
         MainActivity.webview = webview;
@@ -178,9 +178,9 @@ public class WebActivity extends Activity {
             }
         });
 
-        interstitialAdMob = new InterstitialAdMob(this);
-
-        interstitialAdMob.timeshow(5000);
+//        interstitialAdMob = new InterstitialAdMob(this);
+//
+//        interstitialAdMob.timeshow(5000);
 
 
     }

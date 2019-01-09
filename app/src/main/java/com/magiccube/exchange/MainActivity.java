@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
             Log.e(TAG, "url: " + url);
             bundle.putString("url", url);
         } else {
-            bundle.putString("url", "https://exchange.magiccube.io");
+            bundle.putString("url", "https://exchange.mofangvr.com");
         }
         intent.putExtras(bundle);
         startActivity(intent);
